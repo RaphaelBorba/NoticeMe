@@ -1,0 +1,91 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model comments {
+  id        Int      @id(map: "comments_pk") @default(autoincrement())
+  comment   String
+  user_id   Int
+  post_id   Int
+  create_at DateTime @default(now()) @db.Timestamp(6)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comments_fk0")
+  posts     posts    @relation(fields: [post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "comments_fk1")
+}
+
+model description {
+  id        Int      @id(map: "description_pk") @default(autoincrement())
+  text      String
+  user_id   Int
+  create_at DateTime @default(now()) @db.Timestamp(6)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "description_fk0")
+}
+
+model likes {
+  id        Int      @id(map: "likes_pk") @default(autoincrement())
+  user_id   Int
+  posts_id  Int
+  create_at DateTime @default(now()) @db.Timestamp(6)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "likes_fk0")
+  posts     posts    @relation(fields: [posts_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "likes_fk1")
+}
+
+model posts {
+  id        Int        @id(map: "posts_pk") @default(autoincrement())
+  title     String
+  text      String
+  image_url String?
+  user_id   Int
+  create_at DateTime   @default(now()) @db.Timestamp(6)
+  comments  comments[]
+  likes     likes[]
+  users     users      @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "posts_fk0")
+  shares    shares[]
+  tags      tags[]
+}
+
+model shares {
+  id        Int      @id(map: "shares_pk") @default(autoincrement())
+  user_id   Int
+  post_id   Int
+  create_at DateTime @default(now()) @db.Timestamp(6)
+  users     users    @relation(fields: [user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "shares_fk0")
+  posts     posts    @relation(fields: [post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "shares_fk1")
+}
+
+model tags {
+  id        Int      @id(map: "tags_pk") @default(autoincrement())
+  tag       String
+  post_id   Int
+  create_at DateTime @default(now()) @db.Timestamp(6)
+  posts     posts    @relation(fields: [post_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "tags_fk0")
+}
+
+model users {
+  id                                    Int           @id(map: "users_pk") @default(autoincrement())
+  name                                  String
+  image_url                             String
+  email                                 String        @unique
+  password                              String
+  create_at                             DateTime      @default(now()) @db.Timestamp(6)
+  birthday                              DateTime      @db.Date
+  comments                              comments[]
+  description                           description[]
+  follows_follows_user_followingTousers follows[]     @relation("follows_user_followingTousers")
+  follows_follows_user_followedTousers  follows[]     @relation("follows_user_followedTousers")
+  likes                                 likes[]
+  posts                                 posts[]
+  shares                                shares[]
+}
+
+model follows {
+  id                                  Int   @id(map: "follow_pk") @default(autoincrement())
+  user_following                      Int
+  user_followed                       Int
+  users_follows_user_followingTousers users @relation("follows_user_followingTousers", fields: [user_following], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "follows_fk0")
+  users_follows_user_followedTousers  users @relation("follows_user_followedTousers", fields: [user_followed], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "follows_fk1")
+}
